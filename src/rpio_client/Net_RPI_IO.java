@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -180,7 +181,7 @@ public class Net_RPI_IO {
      * @param chn 1..8
      * @return String "analog type", "zero cal." ,"span cal."
      */
-    public String getAnalogSettings(int task, int level, int chn){
+    public String getAnalogSettings(int task, int level, int chn) {
         String command = task + "," + level + "," + getAnalogSettings+" "+chn;
         String reply = sendCommand(command);
         return reply;
@@ -254,55 +255,43 @@ public class Net_RPI_IO {
         return reply;
     }
     private String sendCommand(String command) {
-        
-        String resp="";
-        
         try {
-            socket = new Socket(address, port);
-        } catch (IOException ex) {
-            Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
-            return "-2";
-        }
+            int i = 0;
+            String resp = "";
             
-        try {
-            in = new InputStreamReader(socket.getInputStream());
-        } catch (IOException ex) {
-            Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-            //takes input from socket
-            bfin = new BufferedReader(in);
+            do {
+                try {
+                    socket = new Socket();
+                    socket.connect(new InetSocketAddress(address, port), 1000);
+                    i=10;
+                } catch (IOException ex) {
+                    Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
+                    i++;
+                }
+            } while (i < 5);
             
-        try {
-            // sends output to the socket
-            out = new PrintWriter(socket.getOutputStream(), true);
-        } catch (IOException ex) {
-            Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            if (i == 10) {
+                try {
+                    in = new InputStreamReader(socket.getInputStream());
+                    //takes input from socket
+                    bfin = new BufferedReader(in);
+                    // sends output to the socket
+                    out = new PrintWriter(socket.getOutputStream(), true);
+                    out.println(command);
+                    bfin.close();
+                    out.close();
+                    in.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
             
-            out.println(command);
-        try {
-            resp = bfin.readLine();
-        } catch (IOException ex) {
-            Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-            
-        try {
-            bfin.close();
-        } catch (IOException ex) {
-            Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-            out.close();
-        try {
-            in.close();
-        } catch (IOException ex) {
-            Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
             socket.close();
+            
+            return resp;
         } catch (IOException ex) {
             Logger.getLogger(Net_RPI_IO.class.getName()).log(Level.SEVERE, null, ex);
         }
-         
-        return resp;
+        return "0";
     }
 }
