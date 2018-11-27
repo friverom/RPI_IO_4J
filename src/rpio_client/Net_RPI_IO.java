@@ -278,6 +278,7 @@ public class Net_RPI_IO {
                     // sends output to the socket
                     out = new PrintWriter(socket.getOutputStream(), true);
                     out.println(command);
+                    resp = bfin.readLine();
                     bfin.close();
                     out.close();
                     in.close();
