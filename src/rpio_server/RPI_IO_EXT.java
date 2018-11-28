@@ -70,7 +70,7 @@ public class RPI_IO_EXT extends RPI_IO{
         
     }
     /* 
-     * This method get the owner of a relay output.  
+     * This method get's the owner of a relay output.  
      * @param rly int from 1 to 8
      * @return int owner
      */
@@ -108,18 +108,15 @@ public class RPI_IO_EXT extends RPI_IO{
      * @return int. 0 if operation succeed. -1 if not
      */
     public int setLockRly(int rly, int task, int lvl, int rlycount){
-        // NOTE. This method should be revised. 
-        // Should call setLockRly(rly,task,level) to set the lock
-        // and test if operation succesfull on each relay.
+        
         int data=0;
         
         if((rly+rlycount-1)>8){
             data=-1;
         } else {
-            for (int i = 0; i < (rly + rlycount - 1); i++) {
-                lockRly[i] = (byte) task;
-                lockLvl[i] = (byte) lvl;
-            }
+            for (int i = 0; i < rlycount; i++) {
+                setLockRly(task,lvl,rly+i);
+                }
         }
         return data;
     }
